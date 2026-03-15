@@ -43,6 +43,7 @@ import { Filesystem } from "@/util/filesystem"
 import { QuestionRoutes } from "./routes/question"
 import { PermissionRoutes } from "./routes/permission"
 import { GlobalRoutes } from "./routes/global"
+import { AccountRoutes } from "./routes/account"
 import { MDNS } from "./mdns"
 import { lazy } from "@/util/lazy"
 
@@ -248,6 +249,7 @@ export namespace Server {
       .route("/permission", PermissionRoutes())
       .route("/question", QuestionRoutes())
       .route("/provider", ProviderRoutes())
+      .route("/account", AccountRoutes())
       .route("/", FileRoutes())
       .route("/mcp", McpRoutes())
       .route("/tui", TuiRoutes())
