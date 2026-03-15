@@ -17,6 +17,9 @@ import type {
   ProviderListResponse,
   ProviderAuthMethod,
   VcsInfo,
+  AccountActiveResponses,
+  AccountListResponse,
+  AccountOrgsData,
 } from "@opencode-ai/sdk/v2"
 import { createStore, produce, reconcile } from "solid-js/store"
 import { useSDK } from "@tui/context/sdk"
@@ -80,6 +83,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       vcs: VcsInfo | undefined
       path: Path
       workspaceList: Workspace[]
+      account_active: AccountActiveResponses[200] | null
+      account_list: AccountListResponse | null
+      account_orgs: Record<string, AccountOrgsData>
     }>({
       provider_next: {
         all: [],
@@ -109,6 +115,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       vcs: undefined,
       path: { state: "", config: "", worktree: "", directory: "" },
       workspaceList: [],
+      account_active: null,
+      account_list: null,
+      account_orgs: {},
     })
 
     const sdk = useSDK()
@@ -435,6 +444,15 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             sdk.client.provider.auth().then((x) => setStore("provider_auth", reconcile(x.data ?? {}))),
             sdk.client.vcs.get().then((x) => setStore("vcs", reconcile(x.data))),
             sdk.client.path.get().then((x) => setStore("path", reconcile(x.data!))),
+            sdk.client.account.active().then((x) => setStore("account_active", reconcile(x.data ?? null))),
+            sdk.client.account.list().then((x) => setStore("account_list", reconcile(x.data ?? null))),
+            sdk.client.account.orgs().then((x) => {
+              const orgsByAccount: Record<string, any> = {}
+              for (const group of x.data ?? []) {
+                orgsByAccount[group.account.id] = group.orgs
+              }
+              setStore("account_orgs", reconcile(orgsByAccount))
+            }),
             syncWorkspaces(),
           ]
 
