@@ -508,7 +508,7 @@ export default function Page() {
     items: {} as Record<string, (FollowupDraft & { id: string })[] | undefined>,
     sending: {} as Record<string, string | undefined>,
     failed: {} as Record<string, string | undefined>,
-    paused: {} as Record<string, boolean | undefined>,
+    paused: {} as Record<string, string | undefined>,
     edit: {} as Record<
       string,
       { id: string; prompt: FollowupDraft["prompt"]; context: FollowupDraft["context"] } | undefined
@@ -1621,7 +1621,11 @@ export default function Page() {
     for (let i = msgs.length - 1; i >= 0 && lastAssistantMsgs.length < 3; i--) {
       if (msgs[i].role === "assistant") {
         const parts = sync.data.part[msgs[i].id] ?? []
-        const text = parts.filter((p) => p.type === "text").map((p) => (p as any).text ?? "").join(" ").toLowerCase()
+        const text = parts
+          .filter((p) => p.type === "text")
+          .map((p) => (p as any).text ?? "")
+          .join(" ")
+          .toLowerCase()
         if (text.trim()) lastAssistantMsgs.push(text)
       }
     }
@@ -1897,7 +1901,7 @@ export default function Page() {
                     onAbort: () => {
                       const id = params.id
                       if (!id) return
-                      setFollowup("paused", id, true)
+                      setFollowup("paused", id, "manual")
                     },
                     onResume: () => {
                       const id = params.id
