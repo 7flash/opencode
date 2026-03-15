@@ -5,12 +5,14 @@ import { useSDK } from "../context/sdk"
 import { useTheme } from "../context/theme"
 import { TextAttributes } from "@opentui/core"
 import { DialogSelect } from "@tui/ui/dialog-select"
+import { useToast } from "../ui/toast"
 
 export function DialogAccount() {
   const sync = useSync()
   const dialog = useDialog()
   const sdk = useSDK()
   const { theme } = useTheme()
+  const toast = useToast()
 
   const activeAccount = createMemo(() => sync.data.account_active)
   const accounts = createMemo(() => sync.data.account_list ?? [])
@@ -19,8 +21,8 @@ export function DialogAccount() {
   const handleSwitchOrg = async () => {
     if (accounts().length === 0) return
 
-    const options = accounts().flatMap((account) =>
-      (accountOrgs()[account.id] ?? []).map((org) => ({
+    const options = accounts().flatMap((account: any) =>
+      (accountOrgs()[account.id] ?? []).map((org: any) => ({
         title: `${org.name} (${account.email})`,
         value: { accountID: account.id, orgID: org.id },
         description: account.url,
@@ -31,7 +33,9 @@ export function DialogAccount() {
 
     const selected = await new Promise<{ accountID: string; orgID: string } | null>((resolve) => {
       dialog.replace(
-        () => <DialogSelect title="Switch organization" options={options} onSelect={(opt) => resolve(opt.value)} />,
+        () => (
+          <DialogSelect title="Switch organization" options={options} onSelect={(opt: any) => resolve(opt.value)} />
+        ),
         () => resolve(null),
       )
     })
@@ -41,6 +45,17 @@ export function DialogAccount() {
     await sdk.client.account.use({ accountID: selected.accountID, orgID: selected.orgID })
     await sync.bootstrap()
     dialog.clear()
+
+    const orgList = accountOrgs()[selected.accountID] ?? []
+    const org = orgList.find((o: any) => o.id === selected.orgID)
+    if (org) {
+      toast.show({
+        title: "Organization switched",
+        message: `Switched to ${org.name}`,
+        variant: "success",
+        duration: 3000,
+      })
+    }
   }
 
   const handleLogout = async () => {
@@ -90,26 +105,6 @@ export function DialogAccount() {
           <box flexDirection="row" gap={1} paddingLeft={2}>
             <text fg={theme.text}>Org: </text>
             <text fg={theme.text}>{activeAccount()?.org?.name ?? "None"}</text>
-          </box>
-        </box>
-      </Show>
-
-      <box height={1} />
-
-      <Show when={accounts().length > 0}>
-        <box flexDirection="column" gap={1}>
-          <text fg={theme.text} attributes={TextAttributes.BOLD}>
-            Actions
-          </text>
-          <box flexDirection="row" gap={2} onMouseUp={handleSwitchOrg}>
-            <text fg={theme.text} attributes={TextAttributes.BOLD}>
-              Switch org
-            </text>
-          </box>
-          <box flexDirection="row" gap={2} onMouseUp={handleLogout}>
-            <text fg={theme.text} attributes={TextAttributes.BOLD}>
-              Log out
-            </text>
           </box>
         </box>
       </Show>
