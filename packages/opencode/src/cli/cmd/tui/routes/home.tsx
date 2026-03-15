@@ -37,6 +37,10 @@ export function Home() {
     return Object.values(sync.data.mcp).filter((x) => x.status === "connected").length
   })
 
+  const orgName = createMemo(() => {
+    return sync.data.account_active?.org?.name
+  })
+
   const isFirstTimeUser = createMemo(() => sync.data.session.length === 0)
   const tipsHidden = createMemo(() => kv.get("tips_hidden", false))
   const showTips = createMemo(() => {
@@ -179,6 +183,12 @@ export function Home() {
         >
           <text fg={theme.textMuted}>{directory()}</text>
           <box gap={1} flexDirection="row" flexShrink={0}>
+            <Show when={orgName()}>
+              <text fg={theme.text}>
+                <span style={{ fg: theme.success }}>●</span> {orgName()}
+              </text>
+              <text fg={theme.textMuted}>/account</text>
+            </Show>
             <Show when={mcp()}>
               <text fg={theme.text}>
                 <Switch>
