@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "node",
+      "args": ["C:/Code/chrome-devtools-mcp/build/src/index.js"],
+      "cwd": "C:/Code/chrome-devtools-mcp"
+    }
+  }
+}
