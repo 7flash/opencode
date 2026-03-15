@@ -3,6 +3,15 @@
 import { client } from "./client.gen.js"
 import { buildClientParams, type Client, type Options as Options2, type TDataShape } from "./client/index.js"
 import type {
+  AccountActiveResponses,
+  AccountListResponses,
+  AccountOrgsByAccountErrors,
+  AccountOrgsByAccountResponses,
+  AccountOrgsResponses,
+  AccountRemoveErrors,
+  AccountRemoveResponses,
+  AccountUseErrors,
+  AccountUseResponses,
   AgentPartInput,
   AppAgentsResponses,
   AppLogErrors,
@@ -2641,6 +2650,212 @@ export class Provider extends HeyApiClient {
   }
 }
 
+export class Orgs extends HeyApiClient {
+  /**
+   * List orgs for account
+   *
+   * Get organizations for a specific account.
+   */
+  public byAccount<ThrowOnError extends boolean = false>(
+    parameters: {
+      accountID: string
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "accountID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      AccountOrgsByAccountResponses,
+      AccountOrgsByAccountErrors,
+      ThrowOnError
+    >({
+      url: "/account/orgs/{accountID}",
+      ...options,
+      ...params,
+    })
+  }
+}
+
+export class Account extends HeyApiClient {
+  /**
+   * List accounts
+   *
+   * Get a list of all authenticated accounts.
+   */
+  public list<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<AccountListResponses, unknown, ThrowOnError>({
+      url: "/account/list",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Get active account
+   *
+   * Get the currently active account and organization.
+   */
+  public active<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<AccountActiveResponses, unknown, ThrowOnError>({
+      url: "/account/active",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * List organizations by account
+   *
+   * Get organizations grouped by account.
+   */
+  public orgs<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<AccountOrgsResponses, unknown, ThrowOnError>({
+      url: "/account/orgs",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Set active account and org
+   *
+   * Set the active account and organization.
+   */
+  public use<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      accountID?: string
+      orgID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "accountID" },
+            { in: "body", key: "orgID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<AccountUseResponses, AccountUseErrors, ThrowOnError>({
+      url: "/account/use",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Remove account
+   *
+   * Remove an authenticated account.
+   */
+  public remove<ThrowOnError extends boolean = false>(
+    parameters: {
+      accountID: string
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "accountID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).delete<AccountRemoveResponses, AccountRemoveErrors, ThrowOnError>({
+      url: "/account/{accountID}",
+      ...options,
+      ...params,
+    })
+  }
+
+  private _orgs?: Orgs
+  get orgs2(): Orgs {
+    return (this._orgs ??= new Orgs({ client: this.client }))
+  }
+}
+
 export class Find extends HeyApiClient {
   /**
    * Find text
@@ -3965,6 +4180,11 @@ export class OpencodeClient extends HeyApiClient {
   private _provider?: Provider
   get provider(): Provider {
     return (this._provider ??= new Provider({ client: this.client }))
+  }
+
+  private _account?: Account
+  get account(): Account {
+    return (this._account ??= new Account({ client: this.client }))
   }
 
   private _find?: Find

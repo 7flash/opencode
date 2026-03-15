@@ -1500,6 +1500,10 @@ export type Config = {
      * Timeout in milliseconds for model context protocol (MCP) requests
      */
     mcp_timeout?: number
+    /**
+     * Automatically send prompt after assistant completes. true='whats next', or custom string
+     */
+    auto_followup?: boolean | string
   }
 }
 
@@ -4053,6 +4057,181 @@ export type ProviderOauthCallbackResponses = {
 }
 
 export type ProviderOauthCallbackResponse = ProviderOauthCallbackResponses[keyof ProviderOauthCallbackResponses]
+
+export type AccountListData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/account/list"
+}
+
+export type AccountListResponses = {
+  /**
+   * List of accounts
+   */
+  200: Array<{
+    id: string
+    email: string
+    url: string
+  }>
+}
+
+export type AccountListResponse = AccountListResponses[keyof AccountListResponses]
+
+export type AccountActiveData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/account/active"
+}
+
+export type AccountActiveResponses = {
+  /**
+   * Active account and org
+   */
+  200: {
+    account: {
+      id: string
+      email: string
+      url: string
+    } | null
+    org: {
+      id: string
+      name: string
+    } | null
+  }
+}
+
+export type AccountActiveResponse = AccountActiveResponses[keyof AccountActiveResponses]
+
+export type AccountOrgsData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/account/orgs"
+}
+
+export type AccountOrgsResponses = {
+  /**
+   * Organizations grouped by account
+   */
+  200: Array<{
+    account: {
+      id: string
+      email: string
+      url: string
+    }
+    orgs: Array<{
+      id: string
+      name: string
+    }>
+  }>
+}
+
+export type AccountOrgsResponse = AccountOrgsResponses[keyof AccountOrgsResponses]
+
+export type AccountUseData = {
+  body?: {
+    accountID: string
+    orgID: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/account/use"
+}
+
+export type AccountUseErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type AccountUseError = AccountUseErrors[keyof AccountUseErrors]
+
+export type AccountUseResponses = {
+  /**
+   * Successfully set active account and org
+   */
+  200: boolean
+}
+
+export type AccountUseResponse = AccountUseResponses[keyof AccountUseResponses]
+
+export type AccountRemoveData = {
+  body?: never
+  path: {
+    accountID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/account/{accountID}"
+}
+
+export type AccountRemoveErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type AccountRemoveError = AccountRemoveErrors[keyof AccountRemoveErrors]
+
+export type AccountRemoveResponses = {
+  /**
+   * Successfully removed account
+   */
+  200: boolean
+}
+
+export type AccountRemoveResponse = AccountRemoveResponses[keyof AccountRemoveResponses]
+
+export type AccountOrgsByAccountData = {
+  body?: never
+  path: {
+    accountID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/account/orgs/{accountID}"
+}
+
+export type AccountOrgsByAccountErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type AccountOrgsByAccountError = AccountOrgsByAccountErrors[keyof AccountOrgsByAccountErrors]
+
+export type AccountOrgsByAccountResponses = {
+  /**
+   * List of organizations
+   */
+  200: Array<{
+    id: string
+    name: string
+  }>
+}
+
+export type AccountOrgsByAccountResponse = AccountOrgsByAccountResponses[keyof AccountOrgsByAccountResponses]
 
 export type FindTextData = {
   body?: never
