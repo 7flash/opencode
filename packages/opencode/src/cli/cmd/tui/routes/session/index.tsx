@@ -7,6 +7,7 @@ import {
   For,
   Match,
   on,
+  onCleanup,
   onMount,
   Show,
   Switch,
@@ -188,11 +189,28 @@ export function Session() {
     }
   })
 
+  const [isAtBottom, setIsAtBottom] = createSignal(true)
+
+  createEffect(() => {
+    if (!scroll) return
+    const checkPosition = () => {
+      const threshold = 50
+      const atBottom = scroll.y + scroll.height >= scroll.scrollHeight - threshold
+      setIsAtBottom(atBottom)
+    }
+    scroll.on("scroll", checkPosition)
+    onCleanup(() => {
+      scroll.off("scroll", checkPosition)
+    })
+  })
+
   createEffect(async () => {
     await sync.session
       .sync(route.sessionID)
       .then(() => {
-        if (scroll) scroll.scrollBy(100_000)
+        if (scroll && isAtBottom()) {
+          scroll.scrollBy(100_000)
+        }
       })
       .catch((e) => {
         console.error(e)
