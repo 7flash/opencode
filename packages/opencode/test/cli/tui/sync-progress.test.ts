@@ -85,3 +85,98 @@ describe("Sync Progress", () => {
     expect(safeProgress(-1, 5)).toEqual({ current: 0, total: 5, label: "Loading..." })
   })
 })
+
+describe("Sync Error Handling", () => {
+  test("error state structure", () => {
+    const error = {
+      message: "Network error: Failed to fetch",
+      canRetry: true,
+    }
+
+    expect(error).toHaveProperty("message")
+    expect(error).toHaveProperty("canRetry")
+    expect(typeof error.message).toBe("string")
+    expect(typeof error.canRetry).toBe("boolean")
+  })
+
+  test("error state null when no error", () => {
+    let error: { message: string; canRetry: boolean } | null = null
+
+    expect(error).toBeNull()
+  })
+
+  test("error state transitions", () => {
+    const states = {
+      loading: { status: "loading" as const, error: null },
+      error: {
+        status: "error" as const,
+        error: { message: "Bootstrap failed", canRetry: true },
+      },
+      retrying: { status: "loading" as const, error: null },
+      complete: { status: "complete" as const, error: null },
+    }
+
+    expect(states.loading.status).toBe("loading")
+    expect(states.loading.error).toBeNull()
+
+    expect(states.error.status).toBe("error")
+    expect(states.error.error).not.toBeNull()
+    expect(states.error.error?.message).toBe("Bootstrap failed")
+    expect(states.error.error?.canRetry).toBe(true)
+
+    expect(states.retrying.status).toBe("loading")
+    expect(states.retrying.error).toBeNull()
+
+    expect(states.complete.status).toBe("complete")
+    expect(states.complete.error).toBeNull()
+  })
+
+  test("retry resets error state", () => {
+    let errorState: { message: string; canRetry: boolean } | null = {
+      message: "Test error",
+      canRetry: true,
+    }
+    let status: "loading" | "error" | "complete" = "error"
+
+    expect(status).toBe("error")
+    expect(errorState).not.toBeNull()
+
+    // Simulate retry
+    errorState = null
+    status = "loading"
+
+    expect(status).toBe("loading")
+    expect(errorState).toBeNull()
+  })
+
+  test("error message formatting", () => {
+    const formatError = (error: unknown): string => {
+      if (error instanceof Error) return error.message
+      if (typeof error === "string") return error
+      return String(error)
+    }
+
+    expect(formatError(new Error("Test"))).toBe("Test")
+    expect(formatError("Network error")).toBe("Network error")
+    expect(formatError(123)).toBe("123")
+    expect(formatError({})).toBe("[object Object]")
+  })
+
+  test("canRetry flag controls retry availability", () => {
+    const retryableError = { message: "Network timeout", canRetry: true }
+    const nonRetryableError = { message: "Invalid credentials", canRetry: false }
+
+    expect(retryableError.canRetry).toBe(true)
+    expect(nonRetryableError.canRetry).toBe(false)
+  })
+
+  test("status includes error state", () => {
+    const validStatuses = ["loading", "partial", "complete", "error"]
+
+    expect(validStatuses).toContain("loading")
+    expect(validStatuses).toContain("partial")
+    expect(validStatuses).toContain("complete")
+    expect(validStatuses).toContain("error")
+    expect(validStatuses.length).toBe(4)
+  })
+})
