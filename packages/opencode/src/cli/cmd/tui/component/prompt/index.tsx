@@ -1141,7 +1141,7 @@ export function Prompt(props: PromptProps) {
             </box>
           </Show>
           <Show when={status().type !== "retry"}>
-            <box gap={2} flexDirection="row">
+            <box gap={2} flexDirection="row" justifyContent="space-between" flexGrow={1}>
               <Switch>
                 <Match when={store.mode === "normal"}>
                   <Show when={local.model.variant.list().length > 0}>
@@ -1162,6 +1162,9 @@ export function Prompt(props: PromptProps) {
                   </text>
                 </Match>
               </Switch>
+              <text fg={theme.primary} bold={true}>
+                7flash
+              </text>
             </box>
           </Show>
         </box>
