@@ -376,6 +376,16 @@ export const useSessionCommands = (actions: SessionCommandContext) => {
         keybind: "shift+mod+.",
         onSelect: () => local.agent.move(-1),
       }),
+      agentCommand({
+        id: "agent.infinite",
+        title: language.t("command.agent.infinite"),
+        description: language.t("command.agent.infinite.description"),
+        keybind: "mod+shift+i",
+        onSelect: () => {
+          const current = local.agent.current()?.name
+          local.agent.set(current === "infinite" ? "build" : "infinite")
+        },
+      }),
       modelCommand({
         id: "model.variant.cycle",
         title: language.t("command.model.variant.cycle"),
