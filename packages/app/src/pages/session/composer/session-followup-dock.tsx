@@ -32,6 +32,7 @@ export function SessionFollowupDock(props: {
     if (!props.paused) return ""
     if (props.paused === "error") return "Error detected"
     if (props.paused === "max_iterations") return "Max iterations (20)"
+    if (props.paused === "loop_detected") return "Loop detected"
     return "Paused"
   })
 

@@ -1611,6 +1611,36 @@ export default function Page() {
     return count
   })
 
+  const detectLoop = createMemo(() => {
+    const id = params.id
+    if (!id) return false
+    const msgs = messages()
+    if (msgs.length < 6) return false
+
+    const lastAssistantMsgs: string[] = []
+    for (let i = msgs.length - 1; i >= 0 && lastAssistantMsgs.length < 3; i--) {
+      if (msgs[i].role === "assistant") {
+        const parts = sync.data.part[msgs[i].id] ?? []
+        const text = parts.filter((p) => p.type === "text").map((p) => (p as any).text ?? "").join(" ").toLowerCase()
+        if (text.trim()) lastAssistantMsgs.push(text)
+      }
+    }
+
+    if (lastAssistantMsgs.length < 3) return false
+
+    const similarity = (a: string, b: string) => {
+      const wordsA = a.split(/\s+/)
+      const wordsB = b.split(/\s+/)
+      const common = wordsA.filter((w) => wordsB.includes(w)).length
+      return common / Math.max(wordsA.length, wordsB.length)
+    }
+
+    const sim1 = similarity(lastAssistantMsgs[0], lastAssistantMsgs[1])
+    const sim2 = similarity(lastAssistantMsgs[1], lastAssistantMsgs[2])
+
+    return sim1 > 0.7 && sim2 > 0.7
+  })
+
   createEffect(() => {
     const sessionID = params.id
     if (!sessionID) return
@@ -1637,6 +1667,17 @@ export default function Page() {
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification("Infinite Mode Paused", {
           body: "Maximum iterations (20) reached.",
+          icon: "https://opencode.ai/favicon-96x96-v3.png",
+        })
+      }
+      return
+    }
+
+    if (detectLoop()) {
+      setFollowup("paused", sessionID, "loop_detected")
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Infinite Mode Paused", {
+          body: "Repetitive responses detected. Click to review.",
           icon: "https://opencode.ai/favicon-96x96-v3.png",
         })
       }
