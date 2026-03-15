@@ -51,3 +51,7 @@ console.log(fileHistory || "  (none)")
 console.log("\nCommit search (fix/refactor):\n")
 const search = await $`git log --oneline --all --grep="fix|refactor" -5`.text()
 console.log(search || "  (none)")
+
+console.log("\nLatest commit details:\n")
+const latestCommit = await $`git log -1 --format="Commit: %h%nAuthor: %an <%ae>%nDate: %ai%nMessage: %s%n%n%b"`.text()
+console.log(latestCommit)
