@@ -28,6 +28,8 @@ import { createSimpleContext } from "./helper"
 import type { Snapshot } from "@/snapshot"
 import { useExit } from "./exit"
 import { useArgs } from "./args"
+import { useKV } from "./kv"
+import { useDirectory } from "./directory"
 import { batch, onMount } from "solid-js"
 import { Log } from "@/util/log"
 import type { Path } from "@opencode-ai/sdk"
@@ -36,6 +38,7 @@ import type { Workspace } from "@opencode-ai/sdk/v2"
 export const { use: useSync, provider: SyncProvider } = createSimpleContext({
   name: "Sync",
   init: () => {
+    const kv = useKV()
     const [store, setStore] = createStore<{
       status: "loading" | "partial" | "complete"
       progress: {
@@ -369,12 +372,25 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
 
     const exit = useExit()
     const args = useArgs()
+    const directory = useDirectory()
 
     async function bootstrap() {
       const start = Date.now() - 30 * 24 * 60 * 60 * 1000
       const sessionListPromise = sdk.client.session
         .list({ start: start })
         .then((x) => (x.data ?? []).toSorted((a, b) => a.id.localeCompare(b.id)))
+
+      // Check for workspace-org auto-link
+      const workspaceOrgs = kv.get("workspace_orgs", {}) as Record<string, { accountID: string; orgID: string }>
+      const currentDir = directory()
+      if (workspaceOrgs[currentDir]) {
+        const link = workspaceOrgs[currentDir]
+        try {
+          await sdk.client.account.use({ accountID: link.accountID, orgID: link.orgID })
+        } catch (e) {
+          Log.Default.debug("workspace-org auto-link failed", { error: e instanceof Error ? e.message : String(e) })
+        }
+      }
 
       // blocking - include session.list when continuing a session
       const providersPromise = sdk.client.config.providers({}, { throwOnError: true })
