@@ -55,3 +55,27 @@ console.log(search || "  (none)")
 console.log("\nLatest commit details:\n")
 const latestCommit = await $`git log -1 --format="Commit: %h%nAuthor: %an <%ae>%nDate: %ai%nMessage: %s%n%n%b"`.text()
 console.log(latestCommit)
+
+console.log("\nBranch comparison (dev vs feat branches):\n")
+const featBranches = await $`git branch --list 'feat/*'`.text()
+if (featBranches.trim()) {
+  const featList = featBranches
+    .trim()
+    .split("\n")
+    .map((b) => b.trim())
+  for (const feat of featList.slice(0, 2)) {
+    const featName = feat.replace("* ", "")
+    const diffStat = await $`git diff --stat ${currentBranch.trim()}..${featName}`.text().catch(() => "")
+    if (diffStat) {
+      console.log(`  ${featName}:`)
+      console.log(
+        diffStat
+          .split("\n")
+          .map((l) => "    " + l)
+          .join("\n"),
+      )
+    }
+  }
+} else {
+  console.log("  (no feat branches)")
+}
