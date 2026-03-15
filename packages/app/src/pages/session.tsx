@@ -1594,9 +1594,8 @@ export default function Page() {
   const hasAssistantError = createMemo(() => {
     const assistant = lastAssistantMessage()
     if (!assistant) return false
-    if (assistant.error) return true
     const parts = sync.data.part[assistant.id] ?? []
-    return parts.some((part) => part.type === "error" || (part as any).error)
+    return parts.some((part) => (part as any).error)
   })
 
   const autoFollowupCount = createMemo(() => {
