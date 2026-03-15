@@ -43,3 +43,7 @@ console.log(stash || "  (none)")
 console.log("\nTags:\n")
 const tags = await $`git tag --sort=-creatordate | head -10`.text()
 console.log(tags || "  (none)")
+
+console.log("\nFile history (last 5 commits):\n")
+const fileHistory = await $`git log --oneline --name-only -5 --pretty=format:"%h %s" | head -20`.text()
+console.log(fileHistory || "  (none)")
