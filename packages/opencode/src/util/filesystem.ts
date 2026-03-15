@@ -149,6 +149,16 @@ export namespace Filesystem {
     return !relative(parent, child).startsWith("..")
   }
 
+  export function containsReal(parent: string, child: string) {
+    try {
+      const realChild = realpathSync(child)
+      const realParent = realpathSync(parent)
+      return !relative(realParent, realChild).startsWith("..")
+    } catch {
+      return contains(parent, child)
+    }
+  }
+
   export async function findUp(target: string, start: string, stop?: string) {
     let current = start
     const result = []
