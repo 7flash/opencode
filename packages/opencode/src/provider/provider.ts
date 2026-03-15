@@ -127,7 +127,8 @@ export namespace Provider {
     "@ai-sdk/perplexity": createPerplexity,
     "@ai-sdk/vercel": createVercel,
     "@gitlab/gitlab-ai-provider": createGitLab,
-    // @ts-ignore (TODO: kill this code so we dont have to maintain it)
+    // GitHub Copilot via OpenAI-compatible API (type mismatch with Provider interface)
+    // @ts-expect-error - OpenAICompatibleProvider missing textEmbeddingModel and imageModel
     "@ai-sdk/github-copilot": createGitHubCopilotOpenAICompatible,
   }
 
