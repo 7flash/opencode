@@ -17,6 +17,8 @@ import { useKV } from "../context/kv"
 import { useCommandDialog } from "../component/dialog-command"
 import { DialogAccount } from "../component/dialog-account"
 import { useLocal } from "../context/local"
+import { TextAttributes } from "@opentui/core"
+import { useKeyboard } from "@opentui/solid"
 
 // TODO: what is the best way to do this?
 let once = false
@@ -121,6 +123,12 @@ export function Home() {
 
   const keybind = useKeybind()
 
+  useKeyboard((evt) => {
+    if (sync.data.status === "error" && evt.name === "r") {
+      sync.retry()
+    }
+  })
+
   return (
     <>
       <Show when={sync.data.status === "loading"}>
@@ -146,7 +154,29 @@ export function Home() {
           </Show>
         </box>
       </Show>
-      <Show when={sync.data.status !== "loading"}>
+      <Show when={sync.data.status === "error"}>
+        <box flexGrow={1} alignItems="center" justifyContent="center" flexDirection="column" gap={2}>
+          <Logo />
+          <box flexDirection="column" gap={1} alignItems="center">
+            <text fg={theme.error} attributes={TextAttributes.BOLD}>
+              Failed to load
+            </text>
+            <text fg={theme.textMuted} maxWidth={60}>
+              {sync.data.error?.message ?? "An unknown error occurred"}
+            </text>
+            <box height={1} />
+            <box backgroundColor={theme.primary} padding={1} onMouseUp={() => sync.retry()}>
+              <text fg={theme.background} attributes={TextAttributes.BOLD}>
+                Retry
+              </text>
+            </box>
+            <text fg={theme.textMuted}>
+              Press <text fg={theme.text}>R</text> to retry
+            </text>
+          </box>
+        </box>
+      </Show>
+      <Show when={sync.data.status !== "loading" && sync.data.status !== "error"}>
         <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2}>
           <box flexGrow={1} minHeight={0} />
           <box height={4} minHeight={0} flexShrink={1} />

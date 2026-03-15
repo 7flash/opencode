@@ -40,11 +40,15 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
   init: () => {
     const kv = useKV()
     const [store, setStore] = createStore<{
-      status: "loading" | "partial" | "complete"
+      status: "loading" | "partial" | "complete" | "error"
       progress: {
         current: number
         total: number
         label: string
+      } | null
+      error: {
+        message: string
+        canRetry: boolean
       } | null
       provider: Provider[]
       provider_default: Record<string, string>
@@ -99,6 +103,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       config: {},
       status: "loading",
       progress: null,
+      error: null,
       agent: [],
       permission: {},
       question: {},
@@ -487,13 +492,22 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           })
         })
         .catch(async (e) => {
+          const errorMessage = e instanceof Error ? e.message : String(e)
           Log.Default.error("tui bootstrap failed", {
-            error: e instanceof Error ? e.message : String(e),
+            error: errorMessage,
             name: e instanceof Error ? e.name : undefined,
             stack: e instanceof Error ? e.stack : undefined,
           })
-          await exit(e)
+          setStore("status", "error")
+          setStore("progress", null)
+          setStore("error", { message: errorMessage, canRetry: true })
         })
+    }
+
+    async function retry() {
+      setStore("status", "loading")
+      setStore("error", null)
+      await bootstrap()
     }
 
     onMount(() => {
@@ -557,6 +571,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         sync: syncWorkspaces,
       },
       bootstrap,
+      retry,
     }
     return result
   },
