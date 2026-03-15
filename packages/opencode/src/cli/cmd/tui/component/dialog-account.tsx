@@ -19,15 +19,17 @@ export function DialogAccount() {
   const activeAccount = createMemo(() => sync.data.account_active)
   const accounts = createMemo(() => sync.data.account_list ?? [])
   const accountOrgs = createMemo(() => sync.data.account_orgs ?? {})
-  const recentOrgs = createMemo(
-    () => kv.get("recent_orgs", []) as Array<{ accountID: string; orgID: string; name: string; email: string }>,
-  )
+  const recentOrgs = createMemo(() => {
+    const val = kv.get("recent_orgs", [])
+    return Array.isArray(val) ? val : []
+  }) as unknown as () => Array<{ accountID: string; orgID: string; name: string; email: string }>
 
   const handleSwitchOrg = async () => {
     if (accounts().length === 0) return
 
+    const orgsData = accountOrgs() as unknown as Record<string, any[]>
     const options = accounts().flatMap((account: any) =>
-      (accountOrgs()[account.id] ?? []).map((org: any) => ({
+      (orgsData[account.id] ?? []).map((org: any) => ({
         title: `${org.name} (${account.email})`,
         value: { accountID: account.id, orgID: org.id },
         description: account.url,
@@ -51,7 +53,7 @@ export function DialogAccount() {
     await sync.bootstrap()
     dialog.clear()
 
-    const orgList = accountOrgs()[selected.accountID] ?? []
+    const orgList = (accountOrgs() as unknown as Record<string, any[]>)[selected.accountID] ?? []
     const org = orgList.find((o: any) => o.id === selected.orgID)
     if (org) {
       // Save to recent orgs
