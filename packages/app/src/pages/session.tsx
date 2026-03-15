@@ -1596,10 +1596,11 @@ export default function Page() {
     if (followup.sending[sessionID]) return
     if (composer.blocked()) return
 
+    const followupPhrase = settings.general.autoFollowupPhrase() || "whats next"
     const draft: FollowupDraft = {
       sessionID,
       sessionDirectory: sdk.directory,
-      prompt: [{ type: "text", content: "whats next", start: 0, end: 12 }],
+      prompt: [{ type: "text", content: followupPhrase, start: 0, end: followupPhrase.length }],
       context: [],
       agent: "infinite",
       model: lastUser.model,
