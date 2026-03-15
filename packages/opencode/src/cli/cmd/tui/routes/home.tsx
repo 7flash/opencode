@@ -157,21 +157,33 @@ export function Home() {
       <Show when={sync.data.status === "error"}>
         <box flexGrow={1} alignItems="center" justifyContent="center" flexDirection="column" gap={2}>
           <Logo />
-          <box flexDirection="column" gap={1} alignItems="center">
+          <box flexDirection="column" gap={1} alignItems="center" paddingTop={2} paddingBottom={2}>
             <text fg={theme.error} attributes={TextAttributes.BOLD}>
-              Failed to load
+              ✖ Failed to load
             </text>
-            <text fg={theme.textMuted} maxWidth={60}>
+            <box height={1} />
+            <text fg={theme.text} maxWidth={60}>
               {sync.data.error?.message ?? "An unknown error occurred"}
             </text>
             <box height={1} />
-            <box backgroundColor={theme.primary} padding={1} onMouseUp={() => sync.retry()}>
+            <box
+              backgroundColor={theme.primary}
+              padding={1}
+              paddingLeft={3}
+              paddingRight={3}
+              onMouseUp={() => sync.retry()}
+            >
               <text fg={theme.background} attributes={TextAttributes.BOLD}>
-                Retry
+                ↻ Retry
               </text>
             </box>
+            <box height={1} />
             <text fg={theme.textMuted}>
-              Press <text fg={theme.text}>R</text> to retry
+              Press{" "}
+              <text fg={theme.primary} attributes={TextAttributes.BOLD}>
+                R
+              </text>{" "}
+              to retry
             </text>
           </box>
         </box>
