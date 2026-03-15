@@ -317,7 +317,7 @@ export class AccountService extends ServiceMap.Service<AccountService, AccountSe
 
         const [account, remoteOrgs] = yield* Effect.all([user, orgs], { concurrency: 2 })
 
-        // TODO: When there are multiple orgs, let the user choose
+        // Default to first org; user can switch via CLI (`opencode account switch`) or TUI (`Ctrl+X A`)
         const firstOrgID = remoteOrgs.length > 0 ? Option.some(remoteOrgs[0].id) : Option.none<OrgID>()
 
         const now = yield* Clock.currentTimeMillis
