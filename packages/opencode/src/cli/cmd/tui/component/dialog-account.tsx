@@ -76,9 +76,9 @@ export function DialogAccount() {
   const handleSwitchOrg = async () => {
     if (accounts().length === 0) return
 
-    const orgsData = accountOrgs() as unknown as Record<string, any[]>
-    const options = accounts().flatMap((account: any) =>
-      (orgsData[account.id] ?? []).map((org: any) => ({
+    const orgsData = accountOrgs() as unknown as Record<string, Array<{ id: string; name: string }>>
+    const options = accounts().flatMap((account) =>
+      (orgsData[account.id] ?? []).map((org) => ({
         title: `${org.name} (${account.email})`,
         value: { accountID: account.id, orgID: org.id },
         description: account.url,
@@ -90,7 +90,7 @@ export function DialogAccount() {
     const selected = await new Promise<{ accountID: string; orgID: string } | null>((resolve) => {
       dialog.replace(
         () => (
-          <DialogSelect title="Switch organization" options={options} onSelect={(opt: any) => resolve(opt.value)} />
+          <DialogSelect title="Switch organization" options={options} onSelect={(opt) => resolve((opt as any).value)} />
         ),
         () => resolve(null),
       )
@@ -102,11 +102,12 @@ export function DialogAccount() {
     await sync.bootstrap()
     dialog.clear()
 
-    const orgList = (accountOrgs() as unknown as Record<string, any[]>)[selected.accountID] ?? []
-    const org = orgList.find((o: any) => o.id === selected.orgID)
+    const orgList =
+      (accountOrgs() as unknown as Record<string, Array<{ id: string; name: string }>>)[selected.accountID] ?? []
+    const org = orgList.find((o) => o.id === selected.orgID)
     if (org) {
       // Save to recent orgs
-      const account = accounts().find((a: any) => a.id === selected.accountID)
+      const account = accounts().find((a) => a.id === selected.accountID)
       const recent = recentOrgs().filter((r) => !(r.accountID === selected.accountID && r.orgID === selected.orgID))
       recent.unshift({
         accountID: selected.accountID,
