@@ -326,9 +326,8 @@ export namespace SessionPrompt {
       ) {
         const config = await Config.get()
         if (config.experimental?.auto_followup) {
-          const followupText = typeof config.experimental.auto_followup === "string"
-            ? config.experimental.auto_followup
-            : "whats next"
+          const followupText =
+            typeof config.experimental.auto_followup === "string" ? config.experimental.auto_followup : "whats next"
           const followupMsg: MessageV2.User = {
             id: MessageID.ascending(),
             sessionID: sessionID,
@@ -379,8 +378,9 @@ export namespace SessionPrompt {
       })
       const task = tasks.pop()
 
-      // pending subtask
-      // TODO: centralize "invoke tool" logic
+      // pending subtask - TODO: extract tool invocation pattern into centralized helper
+      // Pattern: Plugin.trigger("tool.execute.before") → tool.execute() → Plugin.trigger("tool.execute.after")
+      // Used in: prompt.ts:439, prompt.ts:832, prompt.ts:878, multiedit.ts:27, batch.ts:80
       if (task?.type === "subtask") {
         const taskTool = await TaskTool.init()
         const taskModel = task.model ? await Provider.getModel(task.model.providerID, task.model.modelID) : model
