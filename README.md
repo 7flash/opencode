@@ -112,6 +112,32 @@ This is used internally and can be invoked using `@general` in messages.
 
 Learn more about [agents](https://opencode.ai/docs/agents).
 
+### Account & Organizations
+
+If you have multiple organizations linked to your account, OpenCode will prompt you to select one during login.
+
+**CLI:**
+
+```bash
+# Login - will prompt for org selection if you have multiple
+opencode account login https://console.opencode.ai
+
+# View current account and org
+opencode account switch
+
+# List all orgs
+opencode account orgs
+
+# Logout
+opencode account logout
+```
+
+**TUI:**
+
+- Press `Ctrl+X A` to open account dialog
+- Or type `/account` or `/org` in the command palette
+- View current account/org and switch between organizations
+
 ### Documentation
 
 For more info on how to configure OpenCode, [**head over to our docs**](https://opencode.ai/docs).
