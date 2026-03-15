@@ -1583,6 +1583,36 @@ export default function Page() {
     const sessionID = params.id
     if (!sessionID) return
 
+    const status = sync.data.session_status[sessionID]
+    if (!status || status.type !== "idle") return
+
+    const lastUser = visibleUserMessages().at(-1)
+    if (!lastUser || lastUser.agent !== "infinite") return
+
+    const currentPrompt = prompt.current()
+    const hasManualInput = currentPrompt.some((part) => part.type === "text" && part.content.trim().length > 0)
+    if (hasManualInput) return
+
+    if (followup.sending[sessionID]) return
+    if (composer.blocked()) return
+
+    const draft: FollowupDraft = {
+      sessionID,
+      sessionDirectory: sdk.directory,
+      prompt: [{ type: "text", content: "whats next", start: 0, end: 12 }],
+      context: [],
+      agent: "infinite",
+      model: lastUser.model,
+      variant: lastUser.variant,
+    }
+
+    queueFollowup(draft)
+  })
+
+  createEffect(() => {
+    const sessionID = params.id
+    if (!sessionID) return
+
     const item = queuedFollowups()[0]
     if (!item) return
     if (followup.sending[sessionID]) return
