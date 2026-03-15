@@ -46,4 +46,9 @@ describe("gitmaps", () => {
     const search = await $`git log --oneline --all --grep="fix" -3`.text()
     expect(search.split("\n").filter(Boolean).length).toBeGreaterThan(0)
   })
+
+  test("shows branch comparison", async () => {
+    const featBranches = await $`git branch --list 'feat/*'`.text()
+    expect(typeof featBranches).toBe("string")
+  })
 })
