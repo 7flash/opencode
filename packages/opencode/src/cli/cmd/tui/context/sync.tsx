@@ -35,6 +35,11 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
   init: () => {
     const [store, setStore] = createStore<{
       status: "loading" | "partial" | "complete"
+      progress: {
+        current: number
+        total: number
+        label: string
+      } | null
       provider: Provider[]
       provider_default: Record<string, string>
       provider_next: ProviderListResponse
@@ -84,6 +89,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       provider_auth: {},
       config: {},
       status: "loading",
+      progress: null,
       agent: [],
       permission: {},
       question: {},
@@ -374,6 +380,11 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         ...(args.continue ? [sessionListPromise] : []),
       ]
 
+      const blockingTotal = blockingRequests.length
+      let blockingCompleted = 0
+
+      setStore("progress", { current: 0, total: blockingTotal, label: "Loading providers..." })
+
       await Promise.all(blockingRequests)
         .then(() => {
           const providersResponse = providersPromise.then((x) => x.data!)
@@ -403,12 +414,15 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
               setStore("config", reconcile(config))
               if (sessions !== undefined) setStore("session", reconcile(sessions))
             })
+
+            blockingCompleted = blockingTotal
+            setStore("progress", { current: blockingCompleted, total: blockingTotal, label: "Providers loaded" })
           })
         })
         .then(() => {
           if (store.status !== "complete") setStore("status", "partial")
-          // non-blocking
-          Promise.all([
+
+          const nonBlockingPromises = [
             ...(args.continue ? [] : [sessionListPromise.then((sessions) => setStore("session", reconcile(sessions)))]),
             sdk.client.command.list().then((x) => setStore("command", reconcile(x.data ?? []))),
             sdk.client.lsp.status().then((x) => setStore("lsp", reconcile(x.data!))),
@@ -422,8 +436,20 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             sdk.client.vcs.get().then((x) => setStore("vcs", reconcile(x.data))),
             sdk.client.path.get().then((x) => setStore("path", reconcile(x.data!))),
             syncWorkspaces(),
-          ]).then(() => {
+          ]
+
+          const nonBlockingTotal = nonBlockingPromises.length
+          let nonBlockingCompleted = 0
+
+          setStore("progress", {
+            current: blockingCompleted,
+            total: blockingCompleted + nonBlockingTotal,
+            label: "Syncing data...",
+          })
+
+          Promise.all(nonBlockingPromises.map((p) => p.then(() => ++nonBlockingCompleted))).then(() => {
             setStore("status", "complete")
+            setStore("progress", null)
           })
         })
         .catch(async (e) => {
