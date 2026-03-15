@@ -1648,6 +1648,9 @@ export default function Page() {
     const status = sync.data.session_status[sessionID]
     if (!status || status.type !== "idle") return
 
+    const currentAgent = local.agent.current()?.name
+    if (currentAgent !== "infinite") return
+
     const lastUser = visibleUserMessages().at(-1)
     if (!lastUser || lastUser.agent !== "infinite") return
 
