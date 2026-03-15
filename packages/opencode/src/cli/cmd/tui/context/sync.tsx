@@ -19,7 +19,7 @@ import type {
   VcsInfo,
   AccountActiveResponses,
   AccountListResponse,
-  AccountOrgsData,
+  AccountOrgsResponse,
 } from "@opencode-ai/sdk/v2"
 import { createStore, produce, reconcile } from "solid-js/store"
 import { useSDK } from "@tui/context/sdk"
@@ -85,7 +85,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       workspaceList: Workspace[]
       account_active: AccountActiveResponses[200] | null
       account_list: AccountListResponse | null
-      account_orgs: Record<string, AccountOrgsData>
+      account_orgs: Record<string, AccountOrgsResponse[number]["orgs"]>
     }>({
       provider_next: {
         all: [],
