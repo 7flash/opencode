@@ -222,3 +222,55 @@ it.effect(
     )
   }),
 )
+
+it.effect(
+  "poll with multiple orgs stores account with first org",
+  Effect.gen(function* () {
+    const login = new Login({
+      code: DeviceCode.make("device-code"),
+      user: UserCode.make("user-code"),
+      url: "https://multi.example.com/verify",
+      server: "https://multi.example.com",
+      expiry: Duration.seconds(600),
+      interval: Duration.seconds(5),
+    })
+
+    const client = HttpClient.make((req) =>
+      Effect.succeed(
+        req.url === "https://multi.example.com/auth/device/token"
+          ? json(req, {
+              access_token: "at_multi",
+              refresh_token: "rt_multi",
+              token_type: "Bearer",
+              expires_in: 60,
+            })
+          : req.url === "https://multi.example.com/api/user"
+            ? json(req, { id: "user-multi", email: "multi@example.com" })
+            : req.url === "https://multi.example.com/api/orgs"
+              ? json(req, [org("org-a", "Org A"), org("org-b", "Org B"), org("org-c", "Org C")])
+              : json(req, {}, 404),
+      ),
+    )
+
+    const res = yield* AccountService.use((s) => s.poll(login)).pipe(Effect.provide(live(client)))
+
+    expect(res._tag).toBe("PollSuccess")
+    if (res._tag === "PollSuccess") {
+      expect(res.email).toBe("multi@example.com")
+    }
+
+    const active = yield* AccountRepo.use((r) => r.active())
+    const activeAccount = Option.getOrThrow(active)
+    expect(activeAccount).toEqual(
+      expect.objectContaining({
+        id: "user-multi",
+        email: "multi@example.com",
+        active_org_id: "org-a",
+      }),
+    )
+
+    const orgs = yield* AccountService.use((s) => s.orgs(activeAccount.id)).pipe(Effect.provide(live(client)))
+    expect(orgs.length).toBe(3)
+    expect(orgs.map((o) => o.id)).toEqual([OrgID.make("org-a"), OrgID.make("org-b"), OrgID.make("org-c")])
+  }),
+)
