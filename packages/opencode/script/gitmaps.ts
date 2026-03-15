@@ -47,3 +47,7 @@ console.log(tags || "  (none)")
 console.log("\nFile history (last 5 commits):\n")
 const fileHistory = await $`git log --oneline --name-only -5 --pretty=format:"%h %s" | head -20`.text()
 console.log(fileHistory || "  (none)")
+
+console.log("\nCommit search (fix/refactor):\n")
+const search = await $`git log --oneline --all --grep="fix|refactor" -5`.text()
+console.log(search || "  (none)")
