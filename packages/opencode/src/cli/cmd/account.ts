@@ -41,8 +41,30 @@ const loginEffect = Effect.fn("login")(function* (url: string) {
   yield* Match.valueTags(result, {
     PollSuccess: (r) =>
       Effect.gen(function* () {
-        yield* s.stop("Logged in as " + r.email)
-        yield* Prompt.outro("Done")
+        const groups = yield* service.orgsByAccount()
+        const accountGroup = groups.find((g) => g.account.email === r.email)
+
+        if (accountGroup && accountGroup.orgs.length > 1) {
+          yield* s.stop("Logged in as " + r.email)
+
+          const opts = accountGroup.orgs.map((org) => ({
+            value: org.id,
+            label: org.name,
+          }))
+
+          yield* Prompt.intro("Select organization")
+          const selected = yield* Prompt.select<OrgID>({ message: "Choose org", options: opts })
+
+          if (Option.isSome(selected)) {
+            yield* service.use(accountGroup.account.id, selected)
+            yield* Prompt.outro("Switched to " + accountGroup.orgs.find((o) => o.id === selected.value)?.name)
+          } else {
+            yield* Prompt.outro("Done (using default org)")
+          }
+        } else {
+          yield* s.stop("Logged in as " + r.email)
+          yield* Prompt.outro("Done")
+        }
       }),
     PollExpired: () => s.stop("Device code expired", 1),
     PollDenied: () => s.stop("Authorization denied", 1),
