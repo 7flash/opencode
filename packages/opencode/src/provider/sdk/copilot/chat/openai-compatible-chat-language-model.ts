@@ -371,7 +371,6 @@ export class OpenAICompatibleChatLanguageModel implements LanguageModelV2 {
             controller.enqueue({ type: "stream-start", warnings })
           },
 
-          // TODO we lost type safety on Chunk, most likely due to the error schema. MUST FIX
           transform(chunk, controller) {
             // Emit raw chunk if requested (before anything else)
             if (options.includeRawChunks) {
@@ -389,7 +388,7 @@ export class OpenAICompatibleChatLanguageModel implements LanguageModelV2 {
             metadataExtractor?.processChunk(chunk.rawValue)
 
             // handle error chunks:
-            if ("error" in value) {
+            if ("error" in value && value.error != null) {
               finishReason = "error"
               controller.enqueue({ type: "error", error: value.error.message })
               return
