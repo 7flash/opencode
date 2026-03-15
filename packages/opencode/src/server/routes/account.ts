@@ -38,7 +38,7 @@ export const AccountRoutes = lazy(() =>
       async (c) => {
         const accounts = await runtime.runPromise(AccountService.use((s) => s.list()))
         return c.json(
-          accounts.map((a: any) => ({
+          accounts.map((a) => ({
             id: a.id,
             email: a.email,
             url: a.url,
