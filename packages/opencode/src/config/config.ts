@@ -174,7 +174,20 @@ export namespace Config {
           source: "OPENCODE_CONFIG_CONTENT",
         }),
       )
-      log.debug("loaded custom config from OPENCODE_CONFIG_CONTENT")
+    }
+
+    // Org-specific config from remote server (highest precedence for org members)
+    try {
+      const activeAccount = await Account.active()
+      if (activeAccount && activeAccount.active_org_id) {
+        const orgConfig = await Account.config(activeAccount.id, activeAccount.active_org_id)
+        if (orgConfig) {
+          result = mergeConfigConcatArrays(result, orgConfig)
+          log.debug("loaded org-specific config", { org: activeAccount.active_org_id })
+        }
+      }
+    } catch (e) {
+      log.debug("failed to load org-specific config", { error: e instanceof Error ? e.message : String(e) })
     }
 
     const active = Account.active()
