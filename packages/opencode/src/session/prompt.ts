@@ -34,6 +34,7 @@ import { spawn } from "child_process"
 import { Command } from "../command"
 import { $ } from "bun"
 import { pathToFileURL, fileURLToPath } from "url"
+import { Config } from "../config/config"
 import { ConfigMarkdown } from "../config/markdown"
 import { SessionSummary } from "./summary"
 import { NamedError } from "@opencode-ai/util/error"
@@ -323,6 +324,34 @@ export namespace SessionPrompt {
         !["tool-calls", "unknown"].includes(lastAssistant.finish) &&
         lastUser.id < lastAssistant.id
       ) {
+        const config = await Config.get()
+        if (config.experimental?.auto_followup) {
+          const followupText = typeof config.experimental.auto_followup === "string"
+            ? config.experimental.auto_followup
+            : "whats next"
+          const followupMsg: MessageV2.User = {
+            id: MessageID.ascending(),
+            sessionID: sessionID,
+            time: {
+              created: Date.now(),
+            },
+            role: "user",
+            agent: lastUser.agent,
+            model: lastUser.model,
+            variant: lastUser.variant,
+          }
+          await Session.updateMessage(followupMsg)
+          const followupPart: MessageV2.Part = {
+            type: "text",
+            id: PartID.ascending(),
+            messageID: followupMsg.id,
+            sessionID: sessionID,
+            text: followupText,
+          }
+          await Session.updatePart(followupPart)
+          log.info("auto-followup", { sessionID, text: followupText })
+          continue
+        }
         log.info("exiting loop", { sessionID })
         break
       }

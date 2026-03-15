@@ -21,6 +21,7 @@ type State = {
 
 type Saved = {
   session: Record<string, State | undefined>
+  lastAgent?: string
 }
 
 const WORKSPACE_KEY = "__workspace__"
@@ -34,14 +35,22 @@ const migrate = (value: unknown) => {
   const item = value as {
     session?: Record<string, State | undefined>
     pick?: Record<string, State | undefined>
+    lastAgent?: string
   }
 
-  if (item.session && typeof item.session === "object") return { session: item.session }
-  if (!item.pick || typeof item.pick !== "object") return { session: {} }
-
-  return {
-    session: Object.fromEntries(Object.entries(item.pick).filter(([key]) => key !== WORKSPACE_KEY)),
+  const result: Saved = {
+    session: {},
+    lastAgent: item.lastAgent,
   }
+
+  if (item.session && typeof item.session === "object") {
+    result.session = item.session
+    return result
+  }
+  if (!item.pick || typeof item.pick !== "object") return result
+
+  result.session = Object.fromEntries(Object.entries(item.pick).filter(([key]) => key !== WORKSPACE_KEY))
+  return result
 }
 
 const clone = (value: State | undefined) => {
@@ -85,7 +94,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         variant?: string | null
       }
     }>({
-      current: list()[0]?.name,
+      current: saved.lastAgent ?? list()[0]?.name,
       draft: undefined,
       last: undefined,
     })
@@ -192,6 +201,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             model: item.model,
             variant: item.variant ?? null,
           })
+          setSaved("lastAgent", item.name)
           const next = {
             agent: item.name,
             model: item.model,

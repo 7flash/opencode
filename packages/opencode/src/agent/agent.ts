@@ -113,6 +113,21 @@ export namespace Agent {
         mode: "primary",
         native: true,
       },
+      infinite: {
+        name: "infinite",
+        description: "Infinite mode. Automatically continues with follow-up prompts. Skips questions.",
+        options: {},
+        permission: PermissionNext.merge(
+          defaults,
+          PermissionNext.fromConfig({
+            question: "deny",
+            plan_enter: "allow",
+          }),
+          user,
+        ),
+        mode: "primary",
+        native: true,
+      },
       general: {
         name: "general",
         description: `General-purpose agent for researching complex questions and executing multi-step tasks. Use this agent to execute multiple units of work in parallel.`,

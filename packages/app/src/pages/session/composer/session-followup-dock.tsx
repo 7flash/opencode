@@ -8,8 +8,11 @@ import { useLanguage } from "@/context/language"
 export function SessionFollowupDock(props: {
   items: { id: string; text: string }[]
   sending?: string
+  paused?: string
+  iterationCount?: number
   onSend: (id: string) => void
   onEdit: (id: string) => void
+  onResume?: () => void
 }) {
   const language = useLanguage()
   const [store, setStore] = createStore({
@@ -24,6 +27,14 @@ export function SessionFollowupDock(props: {
     }),
   )
   const preview = createMemo(() => props.items[0]?.text ?? "")
+
+  const pauseReason = createMemo(() => {
+    if (!props.paused) return ""
+    if (props.paused === "error") return "Error detected"
+    if (props.paused === "max_iterations") return "Max iterations (20)"
+    if (props.paused === "loop_detected") return "Loop detected"
+    return "Paused"
+  })
 
   return (
     <DockTray
@@ -49,7 +60,22 @@ export function SessionFollowupDock(props: {
         <Show when={store.collapsed && preview()}>
           <span class="min-w-0 flex-1 truncate text-13-regular text-text-base cursor-default">{preview()}</span>
         </Show>
-        <div class="ml-auto shrink-0">
+        <Show when={props.iterationCount !== undefined}>
+          <span class="text-11-medium text-text-weak px-2">
+            {props.iterationCount}/20
+          </span>
+        </Show>
+        <Show when={props.paused}>
+          <span class="text-11-medium text-warning px-2 py-0.5 rounded bg-warning/10" title={pauseReason()}>
+            {pauseReason()}
+          </span>
+        </Show>
+        <div class="ml-auto shrink-0 flex items-center gap-1">
+          <Show when={props.paused && props.onResume}>
+            <Button size="small" variant="secondary" onClick={props.onResume!}>
+              Resume
+            </Button>
+          </Show>
           <IconButton
             data-collapsed={store.collapsed ? "true" : "false"}
             icon="chevron-down"

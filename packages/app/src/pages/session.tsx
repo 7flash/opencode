@@ -1579,6 +1579,132 @@ export default function Page() {
 
   const actions = { fork, revert }
 
+  const INFINITE_MAX_ITERATIONS = 20
+
+  const lastAssistantMessage = createMemo(() => {
+    const id = params.id
+    if (!id) return undefined
+    const msgs = messages()
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].role === "assistant") return msgs[i]
+    }
+    return undefined
+  })
+
+  const hasAssistantError = createMemo(() => {
+    const assistant = lastAssistantMessage()
+    if (!assistant) return false
+    if (assistant.error) return true
+    const parts = sync.data.part[assistant.id] ?? []
+    return parts.some((part) => part.type === "error" || (part as any).error)
+  })
+
+  const autoFollowupCount = createMemo(() => {
+    const id = params.id
+    if (!id) return 0
+    const msgs = visibleUserMessages()
+    let count = 0
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].agent === "infinite") count++
+      else break
+    }
+    return count
+  })
+
+  const detectLoop = createMemo(() => {
+    const id = params.id
+    if (!id) return false
+    const msgs = messages()
+    if (msgs.length < 6) return false
+
+    const lastAssistantMsgs: string[] = []
+    for (let i = msgs.length - 1; i >= 0 && lastAssistantMsgs.length < 3; i--) {
+      if (msgs[i].role === "assistant") {
+        const parts = sync.data.part[msgs[i].id] ?? []
+        const text = parts.filter((p) => p.type === "text").map((p) => (p as any).text ?? "").join(" ").toLowerCase()
+        if (text.trim()) lastAssistantMsgs.push(text)
+      }
+    }
+
+    if (lastAssistantMsgs.length < 3) return false
+
+    const similarity = (a: string, b: string) => {
+      const wordsA = a.split(/\s+/)
+      const wordsB = b.split(/\s+/)
+      const common = wordsA.filter((w) => wordsB.includes(w)).length
+      return common / Math.max(wordsA.length, wordsB.length)
+    }
+
+    const sim1 = similarity(lastAssistantMsgs[0], lastAssistantMsgs[1])
+    const sim2 = similarity(lastAssistantMsgs[1], lastAssistantMsgs[2])
+
+    return sim1 > 0.7 && sim2 > 0.7
+  })
+
+  createEffect(() => {
+    const sessionID = params.id
+    if (!sessionID) return
+
+    const status = sync.data.session_status[sessionID]
+    if (!status || status.type !== "idle") return
+
+    const lastUser = visibleUserMessages().at(-1)
+    if (!lastUser || lastUser.agent !== "infinite") return
+
+    if (hasAssistantError()) {
+      setFollowup("paused", sessionID, "error")
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Infinite Mode Paused", {
+          body: "An error was detected. Click to review.",
+          icon: "https://opencode.ai/favicon-96x96-v3.png",
+        })
+      }
+      return
+    }
+
+    if (autoFollowupCount() >= INFINITE_MAX_ITERATIONS) {
+      setFollowup("paused", sessionID, "max_iterations")
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Infinite Mode Paused", {
+          body: "Maximum iterations (20) reached.",
+          icon: "https://opencode.ai/favicon-96x96-v3.png",
+        })
+      }
+      return
+    }
+
+    if (detectLoop()) {
+      setFollowup("paused", sessionID, "loop_detected")
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Infinite Mode Paused", {
+          body: "Repetitive responses detected. Click to review.",
+          icon: "https://opencode.ai/favicon-96x96-v3.png",
+        })
+      }
+      return
+    }
+
+    const currentPrompt = prompt.current()
+    const hasManualInput = currentPrompt.some((part) => part.type === "text" && part.content.trim().length > 0)
+    if (hasManualInput) return
+
+    if (followup.sending[sessionID]) return
+    if (composer.blocked()) return
+
+    const followupPhrase = settings.general.autoFollowupPhrase() || "whats next"
+    const draft: FollowupDraft = {
+      sessionID,
+      sessionDirectory: sdk.directory,
+      prompt: [{ type: "text", content: followupPhrase, start: 0, end: followupPhrase.length }],
+      context: [],
+      agent: "infinite",
+      model: lastUser.model,
+      variant: lastUser.variant,
+    }
+
+    queueFollowup(draft)
+  })
+
   createEffect(() => {
     const sessionID = params.id
     if (!sessionID) return
@@ -1761,12 +1887,19 @@ export default function Page() {
                     queue: queueEnabled,
                     items: followupDock(),
                     sending: sendingFollowup(),
+                    paused: followup.paused[params.id],
+                    iterationCount: autoFollowupCount(),
                     edit: editingFollowup(),
                     onQueue: queueFollowup,
                     onAbort: () => {
                       const id = params.id
                       if (!id) return
                       setFollowup("paused", id, true)
+                    },
+                    onResume: () => {
+                      const id = params.id
+                      if (!id) return
+                      setFollowup("paused", id, undefined)
                     },
                     onSend: (id) => {
                       void sendFollowup(params.id!, id, { manual: true })
