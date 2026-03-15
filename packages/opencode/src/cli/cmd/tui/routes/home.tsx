@@ -15,6 +15,7 @@ import { usePromptRef } from "../context/prompt"
 import { Installation } from "@/installation"
 import { useKV } from "../context/kv"
 import { useCommandDialog } from "../component/dialog-command"
+import { DialogAccount } from "../component/dialog-account"
 import { useLocal } from "../context/local"
 
 // TODO: what is the best way to do this?
@@ -53,6 +54,16 @@ export function Home() {
       onSelect: (dialog) => {
         kv.set("tips_hidden", !tipsHidden())
         dialog.clear()
+      },
+    },
+    {
+      title: "Account",
+      value: "account",
+      keybind: "account",
+      category: "System",
+      slash: { name: "account", aliases: ["org"] },
+      onSelect: (dialog) => {
+        dialog.replace(() => <DialogAccount />)
       },
     },
   ])
