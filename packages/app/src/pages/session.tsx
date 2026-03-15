@@ -1579,6 +1579,38 @@ export default function Page() {
 
   const actions = { fork, revert }
 
+  const INFINITE_MAX_ITERATIONS = 20
+
+  const lastAssistantMessage = createMemo(() => {
+    const id = params.id
+    if (!id) return undefined
+    const msgs = messages()
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].role === "assistant") return msgs[i]
+    }
+    return undefined
+  })
+
+  const hasAssistantError = createMemo(() => {
+    const assistant = lastAssistantMessage()
+    if (!assistant) return false
+    if (assistant.error) return true
+    const parts = sync.data.part[assistant.id] ?? []
+    return parts.some((part) => part.type === "error" || (part as any).error)
+  })
+
+  const autoFollowupCount = createMemo(() => {
+    const id = params.id
+    if (!id) return 0
+    const msgs = visibleUserMessages()
+    let count = 0
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].agent === "infinite") count++
+      else break
+    }
+    return count
+  })
+
   createEffect(() => {
     const sessionID = params.id
     if (!sessionID) return
@@ -1588,6 +1620,16 @@ export default function Page() {
 
     const lastUser = visibleUserMessages().at(-1)
     if (!lastUser || lastUser.agent !== "infinite") return
+
+    if (hasAssistantError()) {
+      setFollowup("paused", sessionID, "error")
+      return
+    }
+
+    if (autoFollowupCount() >= INFINITE_MAX_ITERATIONS) {
+      setFollowup("paused", sessionID, "max_iterations")
+      return
+    }
 
     const currentPrompt = prompt.current()
     const hasManualInput = currentPrompt.some((part) => part.type === "text" && part.content.trim().length > 0)
@@ -1792,12 +1834,18 @@ export default function Page() {
                     queue: queueEnabled,
                     items: followupDock(),
                     sending: sendingFollowup(),
+                    paused: followup.paused[params.id],
                     edit: editingFollowup(),
                     onQueue: queueFollowup,
                     onAbort: () => {
                       const id = params.id
                       if (!id) return
                       setFollowup("paused", id, true)
+                    },
+                    onResume: () => {
+                      const id = params.id
+                      if (!id) return
+                      setFollowup("paused", id, undefined)
                     },
                     onSend: (id) => {
                       void sendFollowup(params.id!, id, { manual: true })

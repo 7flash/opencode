@@ -27,9 +27,11 @@ export function SessionComposerRegion(props: {
     queue: () => boolean
     items: { id: string; text: string }[]
     sending?: string
+    paused?: string
     edit?: { id: string; prompt: FollowupDraft["prompt"]; context: FollowupDraft["context"] }
     onQueue: (draft: FollowupDraft) => void
     onAbort: () => void
+    onResume?: () => void
     onSend: (id: string) => void
     onEdit: (id: string) => void
     onEditLoaded: () => void
@@ -231,6 +233,8 @@ export function SessionComposerRegion(props: {
                 <SessionFollowupDock
                   items={props.followup!.items}
                   sending={props.followup!.sending}
+                  paused={props.followup!.paused}
+                  onResume={props.followup!.onResume}
                   onSend={props.followup!.onSend}
                   onEdit={props.followup!.onEdit}
                 />

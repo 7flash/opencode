@@ -8,8 +8,10 @@ import { useLanguage } from "@/context/language"
 export function SessionFollowupDock(props: {
   items: { id: string; text: string }[]
   sending?: string
+  paused?: string
   onSend: (id: string) => void
   onEdit: (id: string) => void
+  onResume?: () => void
 }) {
   const language = useLanguage()
   const [store, setStore] = createStore({
@@ -49,7 +51,17 @@ export function SessionFollowupDock(props: {
         <Show when={store.collapsed && preview()}>
           <span class="min-w-0 flex-1 truncate text-13-regular text-text-base cursor-default">{preview()}</span>
         </Show>
-        <div class="ml-auto shrink-0">
+        <Show when={props.paused}>
+          <span class="text-11-medium text-warning px-2 py-0.5 rounded bg-warning/10">
+            Paused
+          </span>
+        </Show>
+        <div class="ml-auto shrink-0 flex items-center gap-1">
+          <Show when={props.paused && props.onResume}>
+            <Button size="small" variant="secondary" onClick={props.onResume!}>
+              Resume
+            </Button>
+          </Show>
           <IconButton
             data-collapsed={store.collapsed ? "true" : "false"}
             icon="chevron-down"
