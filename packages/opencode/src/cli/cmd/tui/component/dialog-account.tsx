@@ -7,6 +7,7 @@ import { TextAttributes } from "@opentui/core"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { useToast } from "../ui/toast"
 import { useKV } from "../context/kv"
+import { useDirectory } from "../context/directory"
 
 export function DialogAccount() {
   const sync = useSync()
@@ -15,6 +16,7 @@ export function DialogAccount() {
   const { theme } = useTheme()
   const toast = useToast()
   const kv = useKV()
+  const directory = useDirectory()
 
   const activeAccount = createMemo(() => sync.data.account_active)
   const accounts = createMemo(() => sync.data.account_list ?? [])
@@ -23,6 +25,53 @@ export function DialogAccount() {
     const val = kv.get("recent_orgs", [])
     return Array.isArray(val) ? val : []
   }) as unknown as () => Array<{ accountID: string; orgID: string; name: string; email: string }>
+  const workspaceOrgs = createMemo(
+    () => kv.get("workspace_orgs", {}) as Record<string, { accountID: string; orgID: string }>,
+  )
+
+  const isWorkspaceLinked = createMemo(() => {
+    const currentDir = directory()
+    return !!workspaceOrgs()[currentDir]
+  })
+
+  const handleLinkWorkspace = async () => {
+    const currentOrg = activeAccount()
+    if (!currentOrg || !currentOrg.org || !currentOrg.account) {
+      toast.show({
+        title: "No org selected",
+        message: "Please select an organization first",
+        variant: "warning",
+        duration: 3000,
+      })
+      return
+    }
+
+    const currentDir = directory()
+    const workspaceOrgsCurrent = kv.get("workspace_orgs", {}) as Record<string, { accountID: string; orgID: string }>
+    workspaceOrgsCurrent[currentDir] = { accountID: currentOrg.account.id, orgID: currentOrg.org.id }
+    kv.set("workspace_orgs", workspaceOrgsCurrent)
+
+    toast.show({
+      title: "Workspace linked",
+      message: `This workspace will now auto-switch to ${currentOrg.org.name}`,
+      variant: "success",
+      duration: 3000,
+    })
+  }
+
+  const handleUnlinkWorkspace = async () => {
+    const currentDir = directory()
+    const workspaceOrgsCurrent = kv.get("workspace_orgs", {}) as Record<string, { accountID: string; orgID: string }>
+    delete workspaceOrgsCurrent[currentDir]
+    kv.set("workspace_orgs", workspaceOrgsCurrent)
+
+    toast.show({
+      title: "Workspace unlinked",
+      message: "Auto-switch removed for this workspace",
+      variant: "info",
+      duration: 3000,
+    })
+  }
 
   const handleSwitchOrg = async () => {
     if (accounts().length === 0) return
@@ -144,6 +193,17 @@ export function DialogAccount() {
               Log out
             </text>
           </box>
+          <Show when={activeAccount()?.org}>
+            <box
+              flexDirection="row"
+              gap={2}
+              onMouseUp={isWorkspaceLinked() ? handleUnlinkWorkspace : handleLinkWorkspace}
+            >
+              <text fg={theme.text} attributes={TextAttributes.BOLD}>
+                {isWorkspaceLinked() ? "Unlink workspace" : "Link workspace"}
+              </text>
+            </box>
+          </Show>
         </box>
       </Show>
 
