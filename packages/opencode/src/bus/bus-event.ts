@@ -34,7 +34,7 @@ export namespace BusEvent {
                 ref: "Event" + "." + def.type,
               })
           })
-          .toArray() as any,
+          .toArray() as any, // Type assertion needed for Zod discriminatedUnion variadic tuple requirement
       )
       .meta({
         ref: "Event",
