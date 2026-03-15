@@ -39,3 +39,7 @@ console.log(branchDiff || "  (up to date)")
 console.log("\nStashed changes:\n")
 const stash = await $`git stash list`.text()
 console.log(stash || "  (none)")
+
+console.log("\nTags:\n")
+const tags = await $`git tag --sort=-creatordate | head -10`.text()
+console.log(tags || "  (none)")
