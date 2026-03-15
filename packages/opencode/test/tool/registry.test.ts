@@ -88,26 +88,28 @@ describe("tool.registry", () => {
           JSON.stringify({
             name: "custom-tools",
             dependencies: {
-              "@opencode-ai/plugin": "^0.0.0",
-              cowsay: "^1.6.0",
+              uuid: "^9.0.0",
             },
           }),
         )
 
         await Bun.write(
-          path.join(toolsDir, "cowsay.ts"),
+          path.join(toolsDir, "uuid.ts"),
           [
-            "import { say } from 'cowsay'",
+            "import { v4 as uuidv4 } from 'uuid'",
             "export default {",
-            "  description: 'tool that imports cowsay at top level',",
-            "  args: { text: { type: 'string' } },",
-            "  execute: async ({ text }: { text: string }) => {",
-            "    return say({ text })",
+            "  description: 'tool that imports uuid at top level',",
+            "  args: {},",
+            "  execute: async () => {",
+            "    return uuidv4()",
             "  },",
             "}",
             "",
           ].join("\n"),
         )
+
+        // Install dependencies in temp directory
+        await Bun.$`bun install`.cwd(opencodeDir)
       },
     })
 
@@ -115,7 +117,7 @@ describe("tool.registry", () => {
       directory: tmp.path,
       fn: async () => {
         const ids = await ToolRegistry.ids()
-        expect(ids).toContain("cowsay")
+        expect(ids).toContain("uuid")
       },
     })
   })
