@@ -31,3 +31,7 @@ console.log(`  Ahead: ${ahead.trim()}, Behind: ${behind.trim()}`)
 console.log("\nContributors:\n")
 const contributors = await $`git log --format="%an" | sort | uniq -c | sort -rn | head -5`.text()
 console.log(contributors)
+
+console.log("\nBranch diff (vs origin/dev):\n")
+const branchDiff = await $`git diff --stat origin/dev..HEAD`.text()
+console.log(branchDiff || "  (up to date)")
