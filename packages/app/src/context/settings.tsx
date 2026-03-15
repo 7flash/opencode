@@ -26,6 +26,8 @@ export interface Settings {
     showReasoningSummaries: boolean
     shellToolPartsExpanded: boolean
     editToolPartsExpanded: boolean
+    autoFollowup: boolean
+    autoFollowupPhrase: string
   }
   updates: {
     startup: boolean
@@ -50,6 +52,8 @@ const defaultSettings: Settings = {
     showReasoningSummaries: false,
     shellToolPartsExpanded: true,
     editToolPartsExpanded: false,
+    autoFollowup: false,
+    autoFollowupPhrase: "whats next",
   },
   updates: {
     startup: true,
@@ -152,6 +156,17 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
         ),
         setEditToolPartsExpanded(value: boolean) {
           setStore("general", "editToolPartsExpanded", value)
+        },
+        autoFollowup: withFallback(() => store.general?.autoFollowup, defaultSettings.general.autoFollowup),
+        setAutoFollowup(value: boolean) {
+          setStore("general", "autoFollowup", value)
+        },
+        autoFollowupPhrase: withFallback(
+          () => store.general?.autoFollowupPhrase,
+          defaultSettings.general.autoFollowupPhrase,
+        ),
+        setAutoFollowupPhrase(value: string) {
+          setStore("general", "autoFollowupPhrase", value)
         },
       },
       updates: {

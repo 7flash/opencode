@@ -249,6 +249,35 @@ export const SettingsGeneral: Component = () => {
             triggerStyle={{ "min-width": "180px" }}
           />
         </SettingsRow>
+
+        <SettingsRow
+          title={language.t("settings.general.row.autoFollowup.title")}
+          description={language.t("settings.general.row.autoFollowup.description")}
+        >
+          <div data-action="settings-auto-followup">
+            <Switch
+              checked={settings.general.autoFollowup()}
+              onChange={(checked) => settings.general.setAutoFollowup(checked)}
+            />
+          </div>
+        </SettingsRow>
+
+        <Show when={settings.general.autoFollowup()}>
+          <SettingsRow
+            title={language.t("settings.general.row.autoFollowupPhrase.title")}
+            description={language.t("settings.general.row.autoFollowupPhrase.description")}
+          >
+            <input
+              type="text"
+              class="bg-bg-subtle border border-border rounded px-3 py-1.5 text-14 text-text-strong focus:outline-none focus:ring-2 focus:ring-accent"
+              value={settings.general.autoFollowupPhrase()}
+              onChange={(e) => settings.general.setAutoFollowupPhrase(e.currentTarget.value)}
+              placeholder="whats next"
+              data-action="settings-auto-followup-phrase"
+              style={{ "min-width": "200px" }}
+            />
+          </SettingsRow>
+        </Show>
       </SettingsList>
     </div>
   )

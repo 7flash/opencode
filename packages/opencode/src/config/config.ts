@@ -1220,6 +1220,10 @@ export namespace Config {
             .positive()
             .optional()
             .describe("Timeout in milliseconds for model context protocol (MCP) requests"),
+          auto_followup: z
+            .union([z.boolean(), z.string()])
+            .optional()
+            .describe("Automatically send prompt after assistant completes. true='whats next', or custom string"),
         })
         .optional(),
     })
