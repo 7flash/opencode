@@ -1448,7 +1448,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                   </TooltipKeybind>
                   <Show when={local.agent.current()?.name === "infinite"}>
                     <div class="flex items-center gap-1 text-text-success" title="Infinite mode active">
-                      <Icon name="infinity" class="size-3.5" />
+                      <Icon name="status" class="size-3.5" />
                       <span class="text-11-medium uppercase tracking-wide">Auto</span>
                     </div>
                   </Show>
