@@ -1883,9 +1883,9 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               providerID: taskModel.providerID,
               modelID: taskModel.modelID,
             },
-            // TODO: task tool currently only accepts text prompt, losing other parts (images, files, etc.)
-            // Solution: update TaskTool schema to accept full Part[] input instead of just text prompt
-            // This would allow subtasks to preserve rich context from the original prompt
+            // Pass all parts (text, images, files) to preserve rich context
+            parts: templateParts,
+            // Keep prompt for backward compatibility (extract text from first text part)
             prompt: templateParts.find((y) => y.type === "text")?.text ?? "",
           },
         ]

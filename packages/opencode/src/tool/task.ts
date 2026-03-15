@@ -14,7 +14,11 @@ import { PermissionNext } from "@/permission/next"
 
 const parameters = z.object({
   description: z.string().describe("A short (3-5 words) description of the task"),
-  prompt: z.string().describe("The task for the agent to perform"),
+  prompt: z.string().describe("The task for the agent to perform").optional(),
+  parts: z
+    .array(z.any())
+    .describe("Rich prompt parts (text, images, files) for complex context - takes precedence over prompt")
+    .optional(),
   subagent_type: z.string().describe("The type of specialized agent to use for this task"),
   task_id: z
     .string()
@@ -124,7 +128,13 @@ export const TaskTool = Tool.define("task", async (ctx) => {
       }
       ctx.abort.addEventListener("abort", cancel)
       using _ = defer(() => ctx.abort.removeEventListener("abort", cancel))
-      const promptParts = await SessionPrompt.resolvePromptParts(params.prompt)
+
+      // Support rich parts (images, files) or legacy text prompt
+      const promptParts = params.parts
+        ? (params.parts as any) // Rich parts with full context
+        : params.prompt
+          ? await SessionPrompt.resolvePromptParts(params.prompt) // Legacy text
+          : []
 
       const result = await SessionPrompt.prompt({
         messageID,

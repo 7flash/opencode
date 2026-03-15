@@ -209,7 +209,11 @@ export namespace MessageV2 {
 
   export const SubtaskPart = PartBase.extend({
     type: z.literal("subtask"),
-    prompt: z.string(),
+    prompt: z.string().describe("Text prompt (legacy, use parts for rich context)"),
+    parts: z
+      .array(z.any())
+      .optional()
+      .describe("Rich prompt parts (text, images, files) - takes precedence over prompt"),
     description: z.string(),
     agent: z.string(),
     model: z
