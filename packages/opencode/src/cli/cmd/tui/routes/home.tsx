@@ -111,13 +111,24 @@ export function Home() {
       <Show when={sync.data.status === "loading"}>
         <box flexGrow={1} alignItems="center" justifyContent="center" flexDirection="column" gap={2}>
           <Logo />
-          <Spinner>
-            {sync.data.progress?.label ?? "Loading..."}
-            <Show when={sync.data.progress}>
-              {" "}
-              ({sync.data.progress!.current}/{sync.data.progress!.total})
-            </Show>
-          </Spinner>
+          <Spinner>{sync.data.progress?.label ?? "Loading..."}</Spinner>
+          <Show when={sync.data.progress}>
+            <box flexDirection="row" gap={1} alignItems="center">
+              <text fg={theme.textMuted}>
+                {"["}
+                {(() => {
+                  const p = sync.data.progress!
+                  const total = p.total || 1
+                  const filled = Math.round((p.current / total) * 20)
+                  return "=".repeat(filled) + " ".repeat(20 - filled)
+                })()}
+                {"]"}
+              </text>
+              <text fg={theme.textMuted}>
+                {Math.round((sync.data.progress!.current / (sync.data.progress!.total || 1)) * 100)}%
+              </text>
+            </box>
+          </Show>
         </box>
       </Show>
       <Show when={sync.data.status !== "loading"}>
