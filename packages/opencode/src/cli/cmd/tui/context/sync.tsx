@@ -377,7 +377,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
 
     const exit = useExit()
     const args = useArgs()
-    const directory = useDirectory()
 
     async function bootstrap() {
       const start = Date.now() - 30 * 24 * 60 * 60 * 1000
@@ -387,7 +386,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
 
       // Check for workspace-org auto-link
       const workspaceOrgs = kv.get("workspace_orgs", {}) as Record<string, { accountID: string; orgID: string }>
-      const currentDir = directory()
+      const currentDir = process.cwd()
       if (workspaceOrgs[currentDir]) {
         const link = workspaceOrgs[currentDir]
         try {
