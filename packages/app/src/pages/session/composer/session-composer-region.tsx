@@ -28,6 +28,7 @@ export function SessionComposerRegion(props: {
     items: { id: string; text: string }[]
     sending?: string
     paused?: string
+    iterationCount?: number
     edit?: { id: string; prompt: FollowupDraft["prompt"]; context: FollowupDraft["context"] }
     onQueue: (draft: FollowupDraft) => void
     onAbort: () => void
@@ -234,6 +235,7 @@ export function SessionComposerRegion(props: {
                   items={props.followup!.items}
                   sending={props.followup!.sending}
                   paused={props.followup!.paused}
+                  iterationCount={props.followup!.iterationCount}
                   onResume={props.followup!.onResume}
                   onSend={props.followup!.onSend}
                   onEdit={props.followup!.onEdit}

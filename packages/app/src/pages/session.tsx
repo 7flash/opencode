@@ -1623,11 +1623,23 @@ export default function Page() {
 
     if (hasAssistantError()) {
       setFollowup("paused", sessionID, "error")
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Infinite Mode Paused", {
+          body: "An error was detected. Click to review.",
+          icon: "https://opencode.ai/favicon-96x96-v3.png",
+        })
+      }
       return
     }
 
     if (autoFollowupCount() >= INFINITE_MAX_ITERATIONS) {
       setFollowup("paused", sessionID, "max_iterations")
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Infinite Mode Paused", {
+          body: "Maximum iterations (20) reached.",
+          icon: "https://opencode.ai/favicon-96x96-v3.png",
+        })
+      }
       return
     }
 
@@ -1835,6 +1847,7 @@ export default function Page() {
                     items: followupDock(),
                     sending: sendingFollowup(),
                     paused: followup.paused[params.id],
+                    iterationCount: autoFollowupCount(),
                     edit: editingFollowup(),
                     onQueue: queueFollowup,
                     onAbort: () => {
