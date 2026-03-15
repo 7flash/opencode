@@ -1,4 +1,5 @@
 import { BoxRenderable, TextareaRenderable, MouseEvent, PasteEvent, t, dim, fg } from "@opentui/core"
+import { UI } from "@/cli/ui.ts"
 import { createEffect, createMemo, type JSX, onMount, createSignal, onCleanup, on, Show, Switch, Match } from "solid-js"
 import "opentui-spinner/solid"
 import path from "path"
@@ -1162,9 +1163,7 @@ export function Prompt(props: PromptProps) {
                   </text>
                 </Match>
               </Switch>
-              <text fg={theme.primary} bold={true}>
-                7flash
-              </text>
+              <text fg={theme.primary}>7flash</text>
             </box>
           </Show>
         </box>
