@@ -51,4 +51,19 @@ describe("gitmaps", () => {
     const featBranches = await $`git branch --list 'feat/*'`.text()
     expect(typeof featBranches).toBe("string")
   })
+
+  test("supports JSON output with --json flag", async () => {
+    const output = await $`bun run script/gitmaps.ts --json`.quiet().text()
+    const json = JSON.parse(output)
+
+    expect(json).toHaveProperty("branch")
+    expect(json).toHaveProperty("ahead")
+    expect(json).toHaveProperty("behind")
+    expect(json).toHaveProperty("branches")
+    expect(json).toHaveProperty("contributors")
+    expect(json).toHaveProperty("timestamp")
+    expect(typeof json.branch).toBe("string")
+    expect(typeof json.ahead).toBe("number")
+    expect(Array.isArray(json.branches)).toBe(true)
+  })
 })
