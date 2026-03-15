@@ -35,3 +35,7 @@ console.log(contributors)
 console.log("\nBranch diff (vs origin/dev):\n")
 const branchDiff = await $`git diff --stat origin/dev..HEAD`.text()
 console.log(branchDiff || "  (up to date)")
+
+console.log("\nStashed changes:\n")
+const stash = await $`git stash list`.text()
+console.log(stash || "  (none)")
