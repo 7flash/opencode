@@ -137,6 +137,15 @@ opencode account logout
 - Press `Ctrl+X A` to open account dialog
 - Or type `/account` or `/org` in the command palette
 - View current account/org and switch between organizations
+- **Link workspace** - Auto-switch to an org when opening a specific workspace directory
+- **Recent orgs** - Quick access to your last 5 switched organizations
+
+**Features:**
+
+- **Org-specific config** - Different model/provider settings per organization (fetched from remote server)
+- **Workspace-org auto-link** - Automatically switch orgs based on workspace directory
+- **Recent orgs history** - Quick switch between recently used organizations
+- **Org switch notifications** - Toast notifications when switching orgs
 
 ### Documentation
 
